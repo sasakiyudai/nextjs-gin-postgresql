@@ -62,14 +62,15 @@ func main() {
 
 	v1 := r.Group("/api")
 	users.UsersRegister(v1.Group("/users"))
+	
 	v1.Use(users.AuthMiddleware(false))
+	users.ProfileAnonymousRegister(v1.Group("/profiles"))
 	articles.ArticlesAnonymousRegister(v1.Group("/articles"))
 	articles.TagsAnonymousRegister(v1.Group("/tags"))
 
 	v1.Use(users.AuthMiddleware(true))
 	users.UserRegister(v1.Group("/user"))
 	users.ProfileRegister(v1.Group("/profiles"))
-
 	articles.ArticlesRegister(v1.Group("/articles"))
 
 	testAuth := r.Group("/api/ping")

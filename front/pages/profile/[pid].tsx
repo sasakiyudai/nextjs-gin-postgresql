@@ -21,10 +21,7 @@ const Profile = ({ initialProfile }) => {
     query: { pid },
   } = router;
 
-  const {
-    data: fetchedProfile,
-    error: profileError,
-  } = useSWR(
+  const { data: fetchedProfile, error: profileError } = useSWR(
     `${SERVER_BASE_URL}/profiles/${encodeURIComponent(String(pid))}`,
     fetcher,
     { initialData: initialProfile }

@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:14.1
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - transcendence-db-data:/var/lib/postgresql/data
+
+  # minio:
+  #   image: minio/minio:RELEASE.2021-06-17T00-10-46Z
+  #   ports:
+  #     - 9090:9090
+  #   env_file:
+  #     - .env
+  #   entrypoint: sh
+  #   command:
+  #     -c "mkdir -p /data/.minio.sys/buckets &&
+  #     cp -r /policies/* /data/.minio.sys/ &&
+  #     cp -r /export/* /data/ &&
+  #     /usr/bin/minio server /data"
+  #   volumes:
+  #     - 'transcendence-minio-data:/export/static'
+  #     - './minio/policy:/policies/buckets/static'
+
+  api:
+    build:
+      context: api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    tty: true
+    command: go run hello.go
+
+  # front:
+  #   build:
+  #     context: front
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - "./front:/app:delegated"
+  #     - /app/node_modules
+  #   working_dir: /app
+  #   command: "yarn start"
+
+volumes:
+  transcendence-db-data:
+  # transcendence-minio-data:

@@ -16,7 +16,7 @@ This codebase was created to demonstrate a fully fledged fullstack application b
 ```
 .
 ├── gorm.db
-├── hello.go
+├── main.go
 ├── common
 │   ├── utils.go        //small tools function
 │   └── database.go     //DB connect manager

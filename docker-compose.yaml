@@ -36,7 +36,8 @@ services:
     env_file:
       - .env
     tty: true
-    command: go run hello.go
+    volumes:
+      - ./api:/go/src/app
 
   # front:
   #   build:

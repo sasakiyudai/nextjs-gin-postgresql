@@ -42,7 +42,7 @@ const Navbar = () => {
             </li>
             <li className="nav-item">
               <NavLink
-                href={`/profile/${currentUser?.username}`}
+                href="/profile/[pid]"
                 as={`/profile/${currentUser?.username}`}
               >
                 <span onClick={handleClick}>{currentUser?.username}</span>

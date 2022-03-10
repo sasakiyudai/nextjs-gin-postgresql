@@ -2,10 +2,11 @@ package articles
 
 import (
 	_ "fmt"
-	"github.com/jinzhu/gorm"
+	"strconv"
+
 	"github.com/gothinkster/golang-gin-realworld-example-app/common"
 	"github.com/gothinkster/golang-gin-realworld-example-app/users"
-	"strconv"
+	"gorm.io/gorm"
 )
 
 type ArticleModel struct {
@@ -64,13 +65,13 @@ func GetArticleUserModel(userModel users.UserModel) ArticleUserModel {
 	return articleUserModel
 }
 
-func (article ArticleModel) favoritesCount() int64 {
+func (article ArticleModel) favoritesCount() uint {
 	db := common.GetDB()
 	var count int64
 	db.Model(&FavoriteModel{}).Where(FavoriteModel{
 		FavoriteID: article.ID,
 	}).Count(&count)
-	return count
+	return uint(count)
 }
 
 func (article ArticleModel) isFavoriteBy(user ArticleUserModel) bool {
@@ -113,9 +114,9 @@ func FindOneArticle(condition interface{}) (ArticleModel, error) {
 	var model ArticleModel
 	tx := db.Begin()
 	tx.Where(condition).First(&model)
-	tx.Model(&model).Related(&model.Author, "Author")
-	tx.Model(&model.Author).Related(&model.Author.UserModel)
-	tx.Model(&model).Related(&model.Tags, "Tags")
+	tx.Model(&model).Association("Author").Find(&model.Author)
+	// tx.Model(&model.Author).Association(&model.Author.UserModel)
+	tx.Model(&model).Association("Tags").Find(&model.Tags)
 	err := tx.Commit().Error
 	return model, err
 }
@@ -123,10 +124,10 @@ func FindOneArticle(condition interface{}) (ArticleModel, error) {
 func (self *ArticleModel) getComments() error {
 	db := common.GetDB()
 	tx := db.Begin()
-	tx.Model(self).Related(&self.Comments, "Comments")
+	tx.Model(self).Association("Comments").Find(&self.Comments)
 	for i, _ := range self.Comments {
-		tx.Model(&self.Comments[i]).Related(&self.Comments[i].Author, "Author")
-		tx.Model(&self.Comments[i].Author).Related(&self.Comments[i].Author.UserModel)
+		tx.Model(&self.Comments[i]).Association("Author").Find(&self.Comments[i].Author)
+		// tx.Model(&self.Comments[i].Author).Association(&self.Comments[i].Author.UserModel)
 	}
 	err := tx.Commit().Error
 	return err
@@ -139,10 +140,10 @@ func getAllTags() ([]TagModel, error) {
 	return models, err
 }
 
-func FindManyArticle(tag, author, limit, offset, favorited string) ([]ArticleModel, int, error) {
+func FindManyArticle(tag, author, limit, offset, favorited string) ([]ArticleModel, int64, error) {
 	db := common.GetDB()
 	var models []ArticleModel
-	var count int
+	var count int64
 
 	offset_int, err := strconv.Atoi(offset)
 	if err != nil {
@@ -159,7 +160,7 @@ func FindManyArticle(tag, author, limit, offset, favorited string) ([]ArticleMod
 		var tagModel TagModel
 		tx.Where(TagModel{Tag: tag}).First(&tagModel)
 		if tagModel.ID != 0 {
-			tx.Model(&tagModel).Offset(offset_int).Limit(limit_int).Related(&models, "ArticleModels")
+			tx.Model(&tagModel).Offset(offset_int).Limit(limit_int).Association("ArticleModels").Find(&models)
 			count = tx.Model(&tagModel).Association("ArticleModels").Count()
 		}
 	} else if author != "" {
@@ -169,7 +170,7 @@ func FindManyArticle(tag, author, limit, offset, favorited string) ([]ArticleMod
 
 		if articleUserModel.ID != 0 {
 			count = tx.Model(&articleUserModel).Association("ArticleModels").Count()
-			tx.Model(&articleUserModel).Offset(offset_int).Limit(limit_int).Related(&models, "ArticleModels")
+			tx.Model(&articleUserModel).Offset(offset_int).Limit(limit_int).Association("ArticleModels").Find(&models)
 		}
 	} else if favorited != "" {
 		var userModel users.UserModel
@@ -184,7 +185,7 @@ func FindManyArticle(tag, author, limit, offset, favorited string) ([]ArticleMod
 			count = tx.Model(&articleUserModel).Association("FavoriteModels").Count()
 			for _, favorite := range favoriteModels {
 				var model ArticleModel
-				tx.Model(&favorite).Related(&model, "Favorite")
+				tx.Model(&favorite).Association("Favorite").Find(&model)
 				models = append(models, model)
 			}
 		}
@@ -194,9 +195,9 @@ func FindManyArticle(tag, author, limit, offset, favorited string) ([]ArticleMod
 	}
 
 	for i, _ := range models {
-		tx.Model(&models[i]).Related(&models[i].Author, "Author")
-		tx.Model(&models[i].Author).Related(&models[i].Author.UserModel)
-		tx.Model(&models[i]).Related(&models[i].Tags, "Tags")
+		tx.Model(&models[i]).Association("Author").Find(&models[i].Author)
+		// tx.Model(&models[i].Author).Association(&models[i].Author.UserModel)
+		tx.Model(&models[i]).Association("Tags").Find(&models[i].Tags)
 	}
 	err = tx.Commit().Error
 	return models, count, err
@@ -227,9 +228,9 @@ func (self *ArticleUserModel) GetArticleFeed(limit, offset string) ([]ArticleMod
 	tx.Where("author_id in (?)", articleUserModels).Order("updated_at desc").Offset(offset_int).Limit(limit_int).Find(&models)
 
 	for i, _ := range models {
-		tx.Model(&models[i]).Related(&models[i].Author, "Author")
-		tx.Model(&models[i].Author).Related(&models[i].Author.UserModel)
-		tx.Model(&models[i]).Related(&models[i].Tags, "Tags")
+		tx.Model(&models[i]).Association("Author").Find(&models[i].Author)
+		// tx.Model(&models[i].Author).Association(&models[i].Author.UserModel)
+		tx.Model(&models[i]).Association("Tags").Find(&models[i].Tags)
 	}
 	err = tx.Commit().Error
 	return models, count, err
@@ -252,7 +253,7 @@ func (model *ArticleModel) setTags(tags []string) error {
 
 func (model *ArticleModel) Update(data interface{}) error {
 	db := common.GetDB()
-	err := db.Model(model).Update(data).Error
+	err := db.Model(model).Updates(data).Error
 	return err
 }
 

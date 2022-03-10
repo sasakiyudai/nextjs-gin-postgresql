@@ -2,7 +2,7 @@ package users
 
 import (
 	"errors"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"github.com/gothinkster/golang-gin-realworld-example-app/common"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -142,6 +142,7 @@ func (u UserModel) GetFollowings() []UserModel {
 	}).Find(&follows)
 	for _, follow := range follows {
 		var userModel UserModel
+		// tx.Model(&follow).Related(&userModel, "Following")
 		tx.Model(&follow).Association("Following").Find(&userModel)
 		followings = append(followings, userModel)
 	}

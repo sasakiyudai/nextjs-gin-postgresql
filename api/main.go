@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/gin-gonic/gin"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/gothinkster/golang-gin-realworld-example-app/articles"
 	"github.com/gothinkster/golang-gin-realworld-example-app/common"
 	"github.com/gothinkster/golang-gin-realworld-example-app/users"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func Migrate(db *gorm.DB) {
@@ -26,7 +27,12 @@ func Migrate(db *gorm.DB) {
 func main() {
 	db := common.Init()
 	Migrate(db)
-	defer db.Close()
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer sqlDB.Close()
 
 	r := gin.Default()
 

@@ -6,7 +6,7 @@ import (
 
 	"bytes"
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"github.com/gothinkster/golang-gin-realworld-example-app/common"
 	"github.com/gin-gonic/gin"
 	"net/http"

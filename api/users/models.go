@@ -126,7 +126,7 @@ func (u UserModel) unFollowing(v UserModel) error {
 	err := db.Where(FollowModel{
 		FollowingID:  v.ID,
 		FollowedByID: u.ID,
-	}).Delete(FollowModel{}).Error
+	}).Delete(&FollowModel{}).Error
 	return err
 }
 
@@ -142,7 +142,6 @@ func (u UserModel) GetFollowings() []UserModel {
 	}).Find(&follows)
 	for _, follow := range follows {
 		var userModel UserModel
-		// tx.Model(&follow).Related(&userModel, "Following")
 		tx.Model(&follow).Association("Following").Find(&userModel)
 		followings = append(followings, userModel)
 	}

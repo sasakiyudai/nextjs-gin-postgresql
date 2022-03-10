@@ -99,7 +99,7 @@ func (article ArticleModel) unFavoriteBy(user ArticleUserModel) error {
 	err := db.Where(FavoriteModel{
 		FavoriteID:   article.ID,
 		FavoriteByID: user.ID,
-	}).Delete(FavoriteModel{}).Error
+	}).Delete(&FavoriteModel{}).Error
 	return err
 }
 
@@ -115,7 +115,7 @@ func FindOneArticle(condition interface{}) (ArticleModel, error) {
 	tx := db.Begin()
 	tx.Where(condition).First(&model)
 	tx.Model(&model).Association("Author").Find(&model.Author)
-	// tx.Model(&model.Author).Association(&model.Author.UserModel)
+	tx.Model(&model.Author).Association("UserModel").Find(&model.Author.UserModel)
 	tx.Model(&model).Association("Tags").Find(&model.Tags)
 	err := tx.Commit().Error
 	return model, err
@@ -127,7 +127,7 @@ func (self *ArticleModel) getComments() error {
 	tx.Model(self).Association("Comments").Find(&self.Comments)
 	for i, _ := range self.Comments {
 		tx.Model(&self.Comments[i]).Association("Author").Find(&self.Comments[i].Author)
-		// tx.Model(&self.Comments[i].Author).Association(&self.Comments[i].Author.UserModel)
+		tx.Model(&self.Comments[i].Author).Association("UserModel").Find(&self.Comments[i].Author.UserModel)
 	}
 	err := tx.Commit().Error
 	return err
@@ -196,7 +196,7 @@ func FindManyArticle(tag, author, limit, offset, favorited string) ([]ArticleMod
 
 	for i, _ := range models {
 		tx.Model(&models[i]).Association("Author").Find(&models[i].Author)
-		// tx.Model(&models[i].Author).Association(&models[i].Author.UserModel)
+		tx.Model(&models[i].Author).Association("UserModel").Find(&models[i].Author.UserModel)
 		tx.Model(&models[i]).Association("Tags").Find(&models[i].Tags)
 	}
 	err = tx.Commit().Error
@@ -229,7 +229,7 @@ func (self *ArticleUserModel) GetArticleFeed(limit, offset string) ([]ArticleMod
 
 	for i, _ := range models {
 		tx.Model(&models[i]).Association("Author").Find(&models[i].Author)
-		// tx.Model(&models[i].Author).Association(&models[i].Author.UserModel)
+		tx.Model(&models[i].Author).Association("UserModel").Find(&models[i].Author.UserModel)
 		tx.Model(&models[i]).Association("Tags").Find(&models[i].Tags)
 	}
 	err = tx.Commit().Error
@@ -259,12 +259,12 @@ func (model *ArticleModel) Update(data interface{}) error {
 
 func DeleteArticleModel(condition interface{}) error {
 	db := common.GetDB()
-	err := db.Where(condition).Delete(ArticleModel{}).Error
+	err := db.Where(condition).Delete(&ArticleModel{}).Error
 	return err
 }
 
 func DeleteCommentModel(condition interface{}) error {
 	db := common.GetDB()
-	err := db.Where(condition).Delete(CommentModel{}).Error
+	err := db.Where(condition).Delete(&CommentModel{}).Error
 	return err
 }

@@ -91,7 +91,7 @@ func SaveOne(data interface{}) error {
 //  err := db.Model(userModel).Update(UserModel{Username: "wangzitian0"}).Error
 func (model *UserModel) Update(data interface{}) error {
 	db := common.GetDB()
-	err := db.Model(model).Update(data).Error
+	err := db.Model(model).Updates(data).Error
 	return err
 }
 
@@ -142,7 +142,7 @@ func (u UserModel) GetFollowings() []UserModel {
 	}).Find(&follows)
 	for _, follow := range follows {
 		var userModel UserModel
-		tx.Model(&follow).Related(&userModel, "Following")
+		tx.Model(&follow).Association("Following").Find(&userModel)
 		followings = append(followings, userModel)
 	}
 	tx.Commit()

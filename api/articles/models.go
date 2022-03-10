@@ -64,9 +64,9 @@ func GetArticleUserModel(userModel users.UserModel) ArticleUserModel {
 	return articleUserModel
 }
 
-func (article ArticleModel) favoritesCount() uint {
+func (article ArticleModel) favoritesCount() int64 {
 	db := common.GetDB()
-	var count uint
+	var count int64
 	db.Model(&FavoriteModel{}).Where(FavoriteModel{
 		FavoriteID: article.ID,
 	}).Count(&count)

@@ -24,7 +24,6 @@ func Migrate(db *gorm.DB) {
 }
 
 func main() {
-
 	db := common.Init()
 	Migrate(db)
 	defer db.Close()
@@ -62,7 +61,7 @@ func main() {
 
 	v1 := r.Group("/api")
 	users.UsersRegister(v1.Group("/users"))
-	
+
 	v1.Use(users.AuthMiddleware(false))
 	users.ProfileAnonymousRegister(v1.Group("/profiles"))
 	articles.ArticlesAnonymousRegister(v1.Group("/articles"))
